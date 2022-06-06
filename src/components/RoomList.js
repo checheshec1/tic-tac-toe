@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext} from 'react';
 import {Box, Modal, Typography} from "@mui/material";
 import {Context} from "../index";
 import {useAuthState} from "react-firebase-hooks/auth";
@@ -7,6 +7,7 @@ import Loader from "./Loader";
 import {useNavigate} from "react-router-dom";
 import {MAIN_ROUTE} from "../utils/consts";
 import Sidebar from "./Sidebar";
+import {useGetFreeRooms} from "../utils/hooks";
 
 const style = {
     position: 'absolute',
@@ -25,8 +26,8 @@ const style = {
 export let num;
 
 const RoomList = () => {
-    const [freeRooms, setFreeRooms] = useState([]);
     const {auth, firestore} = useContext(Context);
+    const [freeRooms] = useGetFreeRooms(firestore);
     const [user, loading] = useAuthState(auth);
     const navigate = useNavigate();
 
@@ -41,18 +42,7 @@ const RoomList = () => {
         navigate("/room/" + event.target.value);
     }
 
-    const getFreeRooms = async () => {
-        return await firestore.collection("lobbies").where("enabled", "==", true)
-            .onSnapshot((snapshot) => {
-                const rooms = [];
-                snapshot.forEach((doc) => {
-                    rooms.push(doc.data().name);
-                });
-                setFreeRooms(rooms);
-            });
-    }
-
-    if(!getFreeRooms() || loading)
+    if(loading)
         return <Loader/>
 
 

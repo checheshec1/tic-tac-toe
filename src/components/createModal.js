@@ -1,15 +1,5 @@
-import React, {createContext, useContext, useState} from 'react';
-import {
-    Box,
-    FormControl,
-    FormControlLabel,
-    FormLabel, InputLabel, MenuItem,
-    Modal,
-    Radio,
-    RadioGroup,
-    Select,
-    Typography
-} from "@mui/material";
+import React, {useContext, useState} from 'react';
+import {Box, FormControl, FormControlLabel, FormLabel, MenuItem, Modal, Radio, RadioGroup, Select, Typography} from "@mui/material";
 import {GAME_ROUTE, MAIN_ROUTE, START_ROUTE} from "../utils/consts";
 import {useNavigate} from "react-router-dom";
 import {Context} from "../index";

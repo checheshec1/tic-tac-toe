@@ -4,27 +4,15 @@ import {Context} from "../index";
 import "./components.css";
 import {useAuthState} from "react-firebase-hooks/auth";
 import Loader from "./Loader";
+import {useGetOnlineUsers} from "../utils/hooks";
 
 const Sidebar = () => {
     const {auth, firestore} = useContext(Context);
     const [user, loading] = useAuthState(auth);
-    const [onlineUsers, setOnlineUsers] = useState([]);
+    const [onlineUsers] = useGetOnlineUsers(firestore);
 
     if (loading)
         return <Loader/>;
-
-    const getOnlineUsers = async () => {
-        return await firestore.collection("users").where("online", "==", true)
-            .onSnapshot((snapshot) => {
-                const users = [];
-                snapshot.forEach((doc) => {
-                    users.push(doc.data().displayName);
-                });
-                setOnlineUsers(users);
-            })
-    }
-
-    getOnlineUsers();
 
     return (
         <div>

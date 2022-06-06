@@ -1,4 +1,4 @@
-import {ref, child, get, push, update, remove} from "firebase/database";
+import {ref, child, get, push, update, remove, set} from "firebase/database";
 
 export const changeStatus = async (firestore, email, status) => {
 
@@ -76,6 +76,51 @@ export const createGame = async (firestore, user, created, type, roomName, gameD
             difficulty: gameDifficulty
         })
     }
+}
+
+export const addGameToList = async (db, user, created, type, roomName, gameDifficulty) => {
+    let list;
+
+    if(type === 'bot') {
+        list = [user.displayName, 'bot'];
+
+        const postGame = {
+            created: user.displayName,
+            createdAt: created,
+            name: roomName,
+            number: user.displayName + roomName,
+            player: list,
+            enabled: false,
+            difficulty: gameDifficulty
+        };
+
+        const newRoomKey = `room_${user.displayName}_${roomName}`;
+        const updates = {};
+        updates['/activeRooms/' + newRoomKey] = postGame;
+
+        return update(ref(db), updates);
+
+    } else  {
+        list = [user.displayName];
+
+        const postGame = {
+            created: user.displayName,
+            createdAt: created,
+            name: roomName,
+            number: user.displayName + roomName,
+            player: list,
+            enabled: true,
+            difficulty: gameDifficulty
+        };
+
+        const newRoomKey = 'room_' + user.displayName + roomName;
+        const updates = {};
+        updates['/activeRooms/' + newRoomKey] = postGame;
+
+        return update(ref(db), updates);
+
+    }
+
 }
 
 export const addToFirestore = async (firestore, uid, email, nickname, status, created) => {

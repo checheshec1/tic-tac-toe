@@ -5,7 +5,7 @@ import {useNavigate} from "react-router-dom";
 import {Context} from "../index";
 import {useAuthState} from "react-firebase-hooks/auth";
 import Loader from "./Loader";
-import {createGame} from "../utils/functions";
+import {addGameToList, createGame} from "../utils/functions";
 import firebase from "firebase/compat/app";
 import Sidebar from "./Sidebar";
 
@@ -23,7 +23,7 @@ const style = {
 
 const CreateModal = () => {
     const navigate = useNavigate();
-    const {auth, firestore} = useContext(Context);
+    const {auth, firestore, database} = useContext(Context);
     const [user, loading] = useAuthState(auth);
     const [gameType, setGameType] = useState('bot');
     const [name, setName] = useState("");
@@ -41,7 +41,8 @@ const CreateModal = () => {
     }
 
     const createHandler = () => {
-        createGame(firestore, user, firebase.firestore.FieldValue.serverTimestamp(), gameType, name, difficulty);
+        //createGame(firestore, user, firebase.firestore.FieldValue.serverTimestamp(), gameType, name, difficulty);
+        addGameToList(database, user, Date.now(), gameType, name, difficulty);
         navigate(GAME_ROUTE + user.displayName + name);
     }
 

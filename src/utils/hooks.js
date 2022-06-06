@@ -1,46 +1,40 @@
 import {useEffect, useState} from "react";
 import {ref, onValue, get, query} from "firebase/database";
 
-export function useDifficulty(firestore, user) {
+export function useDifficulty(db, user) {
     const [difficulty, setDifficulty] = useState();
 
     useEffect(() => {
-        const promise = firestore.collection("lobbies").where("players", "array-contains", user.displayName)
-            .get()
-            .then((querySnapshot) => {
-                let dif;
+        const usersRef = ref(db, 'activeRooms');
+        onValue(usersRef, (snapshot) => {
 
-                querySnapshot.forEach((doc) => {
-                    dif = doc.data().difficulty;
-                });
-
-                setDifficulty(dif);
-            })
-            .catch((e) => {
-                console.log("Error getting document: ", e);
+            snapshot.forEach(room => {
+                if(room.val().player.includes(user.displayName)) {
+                    setDifficulty(room.val().difficulty);
+                }
             });
-    }, [])
+        });
+    }, []);
 
     return [difficulty];
 }
 
-export function useOnGameUsers(firestore, user) {
+export function useOnGameUsers(db, user) {
     const [players, setPlayers] = useState([]);
 
-    const promise = firestore.collection("lobbies").where("players", "array-contains", user.displayName)
-        .onSnapshot((snapshot) => {
-            const inGameUsers = [];
+    useEffect(() => {
+        const usersRef = ref(db, 'activeRooms');
+        onValue(usersRef, (snapshot) => {
             const users = [];
 
-            snapshot.forEach((doc) => {
-                inGameUsers.push(doc.data().players);
+            snapshot.forEach(username => {
+                if(username.val().player.includes(user.displayName)) {
+                    users.push(username.val().player);
+                }
             });
-
-            inGameUsers.map(user => {
-                user.map(u => users.push(u));
-            });
-            setPlayers(users);
-        })
+            users.map(user => setPlayers(user));
+        });
+    }, [])
 
     return [players];
 }
@@ -80,7 +74,7 @@ export function useGetFreeRooms(firestore) {
     return [freeRooms];
 }
 
-/*export function useNewSocket() {
+/*export function useNewSocket(difficulty) {
 
     console.log(difficulty);
     if(difficulty === 'human')

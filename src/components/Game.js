@@ -5,7 +5,7 @@ import {Context} from "../index";
 import {useAuthState} from "react-firebase-hooks/auth";
 import {Typography} from "@mui/material";
 import {io} from "socket.io-client";
-import {useDifficultyAndPlayersState} from "../utils/hooks";
+import {useDifficulty, useNewSocket, useOnGameUsers} from "../utils/hooks";
 
 const Game = () => {
     const navigate = useNavigate();
@@ -13,38 +13,36 @@ const Game = () => {
     const [user] = useAuthState(auth);
     const [messages, setMessages] = useState([]);
     const [connected, setConnected] = useState(false);
-    const [difficulty, players] = useDifficultyAndPlayersState(firestore, user);
+    const [difficulty] = useDifficulty(firestore, user);
+    //const [socket] = useNewSocket();
+    const [players] = useOnGameUsers(firestore, user);
     //const socket = useRef();
     //socket.current = new WebSocket('ws://localhost:5000');
 
-    useEffect(() => {
-        if(difficulty === "human") {
-            const socket = new WebSocket('ws://localhost:5000');
-
-            socket.onopen = () => {
-                const message = {
-                    event: "connection",
-                    username: user.displayName,
-                    id: user.uid,
-                }
-                socket.current.send(JSON.stringify(message));
-            }
-
-            socket.onmessage = (event) => {
-                const message = JSON.parse(event.data);
-                setMessages([message]);
-                console.log({messages});
-            }
-
-            socket.onclose = () => {
-                console.log("Socket закрыт");
-            }
-
-            socket.onerror = () => {
-                console.log("Socket произошла ошибка");
-            }
+    /*socket.onopen = () => {
+        const message = {
+            event: "connection",
+            username: user.displayName,
+            id: user.uid,
         }
-    }, []);
+        socket.current.send(JSON.stringify(message));
+    }
+
+    socket.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        setMessages([message]);
+        console.log({messages});
+    }
+
+    socket.onclose = () => {
+        console.log("Socket закрыт");
+    }
+
+    socket.onerror = () => {
+        console.log("Socket произошла ошибка");
+    }*/
+
+    console.log(difficulty);
 
     return (
         <div>

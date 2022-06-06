@@ -4,7 +4,7 @@ import "./components.css";
 import {useNavigate} from "react-router-dom";
 import {MAIN_ROUTE, START_ROUTE} from "../utils/consts";
 import {Context} from "../index";
-import {changeStatus, getUsers} from "../utils/functions";
+import {addOrDeleteToDatabase, changeStatus} from "../utils/functions";
 
 const style = {
     position: 'absolute',
@@ -20,7 +20,7 @@ const style = {
 
 const Login = () => {
     const navigate = useNavigate();
-    const {auth, firestore} = useContext(Context);
+    const {auth, firestore, database} = useContext(Context);
     const [active, setActive] = useState(true);
     const [emailValue, setEmailValue] = useState("");
     const [passwordValue, setPasswordValue] = useState("");
@@ -30,10 +30,13 @@ const Login = () => {
         let email = emailValue;
         let password = passwordValue;
         const {user} = auth.signInWithEmailAndPassword(email, password)
+            .then((result) => {
+                changeStatus(firestore, emailValue, true);
+                addOrDeleteToDatabase(database, result.user.displayName, result.user.uid, true);
+            })
             .catch(() => {
                 console.log(auth.errorCode);
             });
-        changeStatus(firestore, emailValue, true);
         setActive(false);
         navigate(MAIN_ROUTE);
     }

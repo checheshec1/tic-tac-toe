@@ -7,9 +7,9 @@ import Loader from "./Loader";
 import {useGetOnlineUsers} from "../utils/hooks";
 
 const Sidebar = () => {
-    const {auth, firestore} = useContext(Context);
+    const {auth, firestore, database} = useContext(Context);
     const [user, loading] = useAuthState(auth);
-    const [onlineUsers] = useGetOnlineUsers(firestore);
+    const [onlineUsers] = useGetOnlineUsers(database);
 
     if (loading)
         return <Loader/>;
@@ -20,7 +20,8 @@ const Sidebar = () => {
                 <Typography className={"about"}>Список игроков онлайн</Typography>
                 <div style={{overflowY: "auto"}}>
                     <ul>
-                        {onlineUsers.map(user => <li style={{color: "inherit", alignContent: "center"}} key={user}>{user}</li>)}
+                        {/*onlineUsers.map(user => <li style={{color: "inherit", alignContent: "center"}} key={user}>{user}</li>)*/}
+                        {onlineUsers.map((user) => <li style={{color: "inherit", alignContent: "center"}} key={user}>{user}</li> )}
                     </ul>
                 </div>
             </div>

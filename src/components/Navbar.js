@@ -7,12 +7,12 @@ import {useNavigate} from 'react-router-dom';
 import {useContext} from "react";
 import {Context} from "../index";
 import {useAuthState} from "react-firebase-hooks/auth";
-import {changeStatus} from "../utils/functions";
+import {addOrDeleteToDatabase, changeStatus} from "../utils/functions";
 import Loader from "./Loader";
 
 const Navbar = () => {
     const navigate = useNavigate();
-    const {auth, firestore} = useContext(Context);
+    const {auth, firestore, database} = useContext(Context);
     const [user, loading] = useAuthState(auth);
 
     if(loading)
@@ -23,7 +23,8 @@ const Navbar = () => {
     }
 
     const logoutClick = () => {
-        changeStatus(firestore, user.email, false);
+        changeStatus(firestore, user.email, false)
+            .then(addOrDeleteToDatabase(database, user.displayName, user.uid, false))
         auth.signOut();
         navigate(START_ROUTE);
     }

@@ -1,3 +1,5 @@
+import {ref, child, get, push, update, remove} from "firebase/database";
+
 export const changeStatus = async (firestore, email, status) => {
 
      return await firestore.collection("users").where("email", "==", email).get()
@@ -87,6 +89,22 @@ export const addToFirestore = async (firestore, uid, email, nickname, status, cr
     })
         .then((docRef) => console.log(docRef.id))
         .catch(e => console.log(e));
+}
+
+export const addOrDeleteToDatabase = async (db, nickname, uid, saving) => {
+
+    if(saving) {
+        const postUser = {
+            username: nickname
+        }
+        const newUserKey = 'user_' + uid;
+        const updates = {};
+        updates['/onlineUsers/' + newUserKey] = postUser;
+        return update(ref(db), updates);
+    } else {
+        return remove(ref(db, 'onlineUsers/user_' + uid));
+    }
+
 }
 
 export const getRandomIntInclusive = () => {

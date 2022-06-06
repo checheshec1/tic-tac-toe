@@ -4,7 +4,7 @@ import {useNavigate} from "react-router-dom";
 import {isValid, MAIN_ROUTE, START_ROUTE} from "../utils/consts";
 import {useContext, useState} from "react";
 import {Context} from "../index";
-import {addToFirestore} from "../utils/functions";
+import {addOrDeleteToDatabase, addToFirestore} from "../utils/functions";
 import firebase from "firebase/compat/app";
 
 const style = {
@@ -21,7 +21,7 @@ const style = {
 
 const Registration = () => {
     const navigate = useNavigate();
-    const {auth, firestore} = useContext(Context);
+    const {auth, firestore, database} = useContext(Context);
     const [active, setActive] = useState(true);
     const [displayNameValue, setDisplayNameValue] = useState("");
     const [emailValue, setEmailValue] = useState("");
@@ -33,13 +33,13 @@ const Registration = () => {
         let password = passwordValue;
         let nickname = displayNameValue;
         let confirmPassword = confirmPasswordValue;
-        console.log(email, password, nickname, confirmPassword);
 
         if (isValid(nickname) && password === confirmPassword) {
             const {user} =  auth.createUserWithEmailAndPassword(email, password)
                 .then((result) => {
                     result.user.updateProfile({displayName: nickname});
-                    addToFirestore(firestore, result.user.uid, email, nickname, true, firebase.firestore.FieldValue.serverTimestamp())
+                    addToFirestore(firestore, result.user.uid, email, nickname, true, firebase.firestore.FieldValue.serverTimestamp());
+                    addOrDeleteToDatabase(database, nickname, result.user.uid, true);
                 });
             setActive(false);
             navigate(MAIN_ROUTE);

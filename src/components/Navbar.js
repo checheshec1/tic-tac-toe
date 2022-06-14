@@ -9,11 +9,14 @@ import {Context} from "../index";
 import {useAuthState} from "react-firebase-hooks/auth";
 import {addOrDeleteToDatabase, changeStatus} from "../utils/functions";
 import Loader from "./Loader";
+import {DropDownMenu} from "./Menu";
+import {useState} from "react";
 
 const Navbar = () => {
     const navigate = useNavigate();
     const {auth, firestore, database} = useContext(Context);
     const [user, loading] = useAuthState(auth);
+    const [openMenu, setOpenMenu] = useState(false);
 
     if(loading)
         return <Loader/>
@@ -45,10 +48,10 @@ const Navbar = () => {
                             aria-label="menu"
                             sx={{mr: 2}}
                         >
-                            <MenuIcon /*onClick={() => setOpenMenu(!openMenu)}*//>
+                            <MenuIcon onClick={() => setOpenMenu(!openMenu)}/>
                         </IconButton>
                         <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
-                            Крестики-нолики (Сделать меню)
+                            Крестики-нолики
                         </Typography>
                         {user ?
                             <Button color="inherit" id={"enter/details"} /*onClick={loginClick}*/>{user.displayName}</Button>
@@ -63,6 +66,7 @@ const Navbar = () => {
                     </Toolbar>
                 </AppBar>
             </Box>
+            <DropDownMenu isActive={openMenu} setIsActive={setOpenMenu}/>
         </div>
     )
 }

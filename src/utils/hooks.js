@@ -19,6 +19,26 @@ export function useDifficulty(db, user) {
     return [difficulty];
 }
 
+export function useRoomId(db, user) {
+    const [roomId, setRoomId] = useState();
+
+    useEffect(() => {
+        const usersRef = ref(db, 'activeRooms');
+        onValue(usersRef, (snapshot) => {
+
+            snapshot.forEach(room => {
+                if(room.val().player.includes(user.displayName)) {
+                    setRoomId(room.val().number);
+                }
+            });
+        });
+    }, []);
+
+    return [roomId];
+}
+
+
+
 export function useOnGameUsers(db, user) {
     const [players, setPlayers] = useState([]);
 
@@ -39,6 +59,24 @@ export function useOnGameUsers(db, user) {
     return [players];
 }
 
+export function useGames(db) {
+    const [games, setGames] = useState([]);
+
+    useEffect(() => {
+        const gamesRef = ref(db, 'activeRooms');
+        onValue(gamesRef, (snapshot) => {
+            const onlineGames = [];
+
+            snapshot.forEach(room => {
+                onlineGames.push({id: room.val().number, players: room.val().player});
+            });
+            setGames(onlineGames);
+        });
+    }, []);
+
+    return [games];
+}
+
 export function useGetOnlineUsers(db) {
     const [onlineUsers, setOnlineUsers] = useState([]);
 
@@ -57,10 +95,23 @@ export function useGetOnlineUsers(db) {
     return [onlineUsers];
 }
 
-export function useGetFreeRooms(firestore) {
+export function useGetFreeRooms(db) {
     const [freeRooms, setFreeRooms] = useState([]);
 
-    const promise = firestore.collection("lobbies").where("enabled", "==", true)
+    useEffect(() => {
+        const roomsRef = ref(db, 'activeRooms');
+        onValue(roomsRef, (snapshot) => {
+            const rooms = [];
+
+            snapshot.forEach(room => {
+                if(room.val().enabled === true)
+                    rooms.push(room.val());
+            });
+            setFreeRooms(rooms);
+        });
+    }, []);
+
+    /*const promise = firestore.collection("lobbies").where("enabled", "==", true)
         .onSnapshot((snapshot) => {
             const rooms = [];
 
@@ -69,7 +120,7 @@ export function useGetFreeRooms(firestore) {
             });
 
             setFreeRooms(rooms);
-        });
+        });*/
 
     return [freeRooms];
 }

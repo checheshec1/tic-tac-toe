@@ -26,8 +26,8 @@ const style = {
 export let num;
 
 const RoomList = () => {
-    const {auth, firestore} = useContext(Context);
-    const [freeRooms] = useGetFreeRooms(firestore);
+    const {auth, firestore, database} = useContext(Context);
+    const [freeRooms] = useGetFreeRooms(database);
     const [user, loading] = useAuthState(auth);
     const navigate = useNavigate();
 
@@ -36,7 +36,7 @@ const RoomList = () => {
     }
 
     const enterHandler = async (event) => {
-        await enterGame(firestore, event.target.value, user);
+        await enterGame(database, event.target.value, user);
         num = event.target.value;
         await firestore.collection("lobbies").off;
         navigate("/room/" + event.target.value);
@@ -66,8 +66,8 @@ const RoomList = () => {
                                     key={room} type={"button"}
                                     className={"mui-btn mui-btn--raised mui-btn--primary item"}
                                     onClick={enterHandler}
-                                    value={room}
-                                >{room}</button></li>)}
+                                    value={room.number}
+                                >{room.name}</button></li>)}
                             </ul>
                         </div>
                         <button type={"submit"} className={"mui-btn mui-btn--raised mui-btn--primary"} onClick={backHandler}>Назад</button>

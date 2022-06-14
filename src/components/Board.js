@@ -1,28 +1,65 @@
-import React, {useContext, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import Square from "./Square";
 import {useNavigate} from "react-router-dom";
 import {useAuthState} from "react-firebase-hooks/auth";
 import {Context} from "../index";
-import {calculateWinner, getRandomIntInclusive, minimax} from "../utils/functions";
+import {
+    calculateWinner,
+    getRandomIntInclusive,
+    minimax,
+    removeActiveRoom,
+    saveGameInFirestore
+} from "../utils/functions";
+import {Box, Modal, Typography} from "@mui/material";
+import Loader from "./Loader";
 
-const Board = ({complexity}) => {
-    const [xIsNext, setXIsNext] = useState(true);
+const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    height: 400,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+    display: 'block'
+};
+
+const Board = ({complexity, squares, xIsNext, setSquares, setXIsNext, disabled, flag, setFlag, room}) => {
+    //const [xIsNext, setXIsNext] = useState(true);
+    //const [squares, setSquares] = useState(Array(9).fill(null));
     const navigate = useNavigate();
-    const {auth, firestore} = useContext(Context);
+    const {auth, firestore, database} = useContext(Context);
     const [user] = useAuthState(auth);
-    const [squares, setSquares] = useState(Array(9).fill(null));
-    const [disable, setDisable] = useState(false)
+    const [disable, setDisable] = useState(disabled)
     let status, winner = null;
 
+    /*useEffect(() => {
+
+    }, [squares])*/
+
     function handleClick(i) {
-        const playerSquares = squares.slice();
-        if (calculateWinner(playerSquares) || squares[i]) {
-            return;
+        if(complexity !== 'human') {
+            const playerSquares = squares.slice();
+            if (calculateWinner(playerSquares) || squares[i]) {
+                return;
+            }
+            playerSquares[i] = xIsNext ? 'X' : 'O';
+            setSquares(playerSquares);
+            setXIsNext(!xIsNext);
+            setDisable(true);
+        } else {
+            const playerSquares = squares.slice();
+            if (calculateWinner(playerSquares) || squares[i]) {
+                return;
+            }
+            playerSquares[i] = xIsNext ? user.displayName : user.displayName;
+            setSquares(playerSquares);
+            setFlag(!flag);
+            //setDisable(true);
         }
-        playerSquares[i] = xIsNext ? 'X' : 'O';
-        setSquares(playerSquares);
-        setXIsNext(!xIsNext);
-        setDisable(true);
     }
 
     const cpuPlayer = () => {
@@ -34,11 +71,10 @@ const Board = ({complexity}) => {
         else if(complexity === 'human') {
             startHuman();
         }
-        setDisable(false);
     }
 
     const startHuman = () => {
-
+        console.log(squares);
     }
 
     const startEasy = () => {
@@ -53,6 +89,7 @@ const Board = ({complexity}) => {
         cpuSquares[i] = xIsNext ? 'X' : 'O';
         setSquares(cpuSquares);
         setXIsNext(!xIsNext);
+        setDisable(false);
     }
 
     const startHard = () => {
@@ -62,6 +99,7 @@ const Board = ({complexity}) => {
         cpuSquares[bestSpot.index] = xIsNext ? 'X' : 'O';
         setSquares(cpuSquares);
         setXIsNext(!xIsNext);
+        setDisable(false);
     }
 
     function renderSquare(i) {
@@ -74,20 +112,49 @@ const Board = ({complexity}) => {
         );
     }
 
-    winner = calculateWinner(squares);
-    if (winner) {
-        if(winner === 'X')
-            status = 'Победитель: ' + user.displayName;
-        else if (winner === 'O')
-            status = 'Победитель: БОТ';
-        else if (winner === 'draw')
-            status = 'НИЧЬЯ!'
-    } else {
-        status = 'Следующий ход: ' + (xIsNext ? (user.displayName) : 'БОТ');
-        if(!xIsNext) {
-            setTimeout(cpuPlayer, 1000);
-        }
+    const backHandler = () => {
+        removeActiveRoom(database, room);
+        navigate('/lobby');
     }
+
+    //useEffect(() => {
+        winner = calculateWinner(squares);
+        if (winner) {
+            if(winner === 'X') {
+                status = 'Победитель: ' + 'X';
+                saveGameInFirestore(firestore, database, room, 'X');
+            }
+            else if (winner === 'O') {
+                status = 'Победитель: O';
+                saveGameInFirestore(firestore, database, room, 'O');
+            }
+            else if (winner === 'draw')
+            {
+                status = 'НИЧЬЯ!'
+                saveGameInFirestore(firestore, database, room, 'Draw');
+            }
+
+            return (
+                <Modal
+                    open={true}
+                    aria-labelledby="modal-modal-title"
+                    aria-describedby="modal-modal-description"
+                >
+                    <Box sx={style}>
+                        <Typography id="modal-modal-title" variant="h4" component="h1">{status}</Typography>
+                        <button type={"submit"} className={"mui-btn mui-btn--raised mui-btn--primary"} onClick={backHandler}>Ок</button>
+                    </Box>
+                </Modal>
+            )
+        } else {
+            status = 'Следующий ход: ' + (xIsNext ? (user.displayName) : 'БОТ');
+            if(complexity !== 'human') {
+                if(!xIsNext) {
+                    setTimeout(cpuPlayer, 1000);
+                }
+            }
+        }
+    //}, [squares])
 
     return (
         <div className={"board"}>

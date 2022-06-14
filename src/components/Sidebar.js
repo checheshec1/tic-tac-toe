@@ -20,7 +20,6 @@ const Sidebar = () => {
                 <Typography className={"about"}>Список игроков онлайн</Typography>
                 <div style={{overflowY: "auto"}}>
                     <ul>
-                        {/*onlineUsers.map(user => <li style={{color: "inherit", alignContent: "center"}} key={user}>{user}</li>)*/}
                         {onlineUsers.map((user) => <li style={{color: "inherit", alignContent: "center"}} key={user}>{user}</li> )}
                     </ul>
                 </div>

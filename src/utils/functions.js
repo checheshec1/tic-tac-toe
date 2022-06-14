@@ -1,4 +1,4 @@
-import {ref, child, get, push, update, remove, set} from "firebase/database";
+import {ref, child, get, push, update, remove, set, runTransaction, onValue} from "firebase/database";
 
 export const changeStatus = async (firestore, email, status) => {
 
@@ -25,8 +25,33 @@ export const changeStatus = async (firestore, email, status) => {
 
 }
 
-export const enterGame = async (firestore, num, user) => {
-    let list = [];
+export const enterGame = async (db, num, user) => {
+    const gameRef = ref(db, `activeRooms/room_${num}`);
+    let players;
+
+    get(gameRef)
+        .then((snapshot) => {
+            if(snapshot.exists()) {
+
+                players = snapshot.val().player;
+            } else {
+                console.log('No data available');
+            }
+            players.push(user.displayName);
+
+            runTransaction(gameRef, (game) => {
+                if(game) {
+                    update(gameRef, {player: players, enabled: false})
+                }
+            })
+                .then(() => console.log('Transaction succesfully commited'));
+
+        })
+        .catch(e => {
+            console.log(e);
+        });
+
+    /*let list = [];
 
     await firestore.collection("lobbies").where("number", "==", num).get()
         .then((querySnapshot) => {
@@ -45,7 +70,7 @@ export const enterGame = async (firestore, num, user) => {
                     }).then(() => console.log("Transaction successfully committed!"))
                 }
             });
-        }).catch(e => console.log(e));
+        }).catch(e => console.log(e));*/
 }
 
 export const createGame = async (firestore, user, created, type, roomName, gameDifficulty) => {
@@ -88,7 +113,7 @@ export const addGameToList = async (db, user, created, type, roomName, gameDiffi
             created: user.displayName,
             createdAt: created,
             name: roomName,
-            number: user.displayName + roomName,
+            number: user.displayName + '_' + roomName,
             player: list,
             enabled: false,
             difficulty: gameDifficulty
@@ -259,4 +284,37 @@ export function minimax (newBoard, player) {
     }
 
     return moves[bestMove];
+}
+
+export const saveGameInFirestore = (firestore, db, num, winner) => {
+    const gameRef = ref(db, `activeRooms/room_${num}`);
+    let game;
+    console.log(num);
+
+    get(gameRef)
+        .then((snapshot) => {
+            if (snapshot.exists()) {
+                game = snapshot.val();
+                console.log(game);
+                firestore.collection('lobbies').add({
+                    created: game.created,
+                    createdAt: game.createdAt,
+                    difficulty: game.difficulty,
+                    name: game.name,
+                    number: game.number,
+                    players: game.player,
+                    winner: winner
+                });
+            } else {
+                console.log('No data available');
+            }
+        })
+        .catch(e => {
+            console.log(e);
+        });
+}
+
+export const removeActiveRoom = (db, num) => {
+    const gameRef = ref(db, `activeRooms/room_${num}`);
+    remove(gameRef);
 }

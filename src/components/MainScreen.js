@@ -23,7 +23,7 @@ const MainScreen = () => {
     }
 
     const enterClick = () => {
-        //setActiveSelect(true);
+        setActiveSelect(true);
         navigate(SELECT_ROUTE);
     }
 
@@ -31,8 +31,8 @@ const MainScreen = () => {
         <div>
             <Sidebar/>
             {/*<RoomList active={activeSelect} setActive={setActiveSelect}/>*/}
-            <Button color="inherit" id={"createLobby"} onClick={createClick}>Создать комнату</Button>
-            <Button color="inherit" id={"enterLobby"} onClick={enterClick}>Войти в комнату</Button>
+            <Button color="inherit" id={"createLobby"} style={{backgroundColor: "green", marginLeft: '500px'}} onClick={createClick}>Создать комнату</Button>
+            <Button color="inherit" id={"enterLobby"} style={{backgroundColor: "yellow"}} onClick={enterClick}>Войти в комнату</Button>
         </div>
     );
 };

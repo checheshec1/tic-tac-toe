@@ -30,8 +30,4 @@ export const privateRoutes = [
         path: CREATE_ROOM,
         Component: <CreateModal/>
     }
-    /*{
-        path: GAME_ROUTE,
-        Component: <Room/>
-    }*/
 ]
